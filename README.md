@@ -8,7 +8,7 @@ The scripts are all developed and tested with Python 3.5.
 
 ### publishLacross.py
 
-Create ```config.ini``` from ``config.ini.example``` and edit your endpoint etc.
+Create ```config.ini``` from ```config.ini.example``` and edit your endpoint etc.
 
 
 ## AWS
