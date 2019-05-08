@@ -1,0 +1,5 @@
+[DEFAULT]
+topic = /Raspi
+client = myRaspy
+host = xxxxxxxx.iot.eu-central-1.amazonaws.com
+certpath = /home/pi/awsIOTCerts/
