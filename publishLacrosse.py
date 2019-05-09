@@ -57,25 +57,24 @@ def get_json_from_sensor( the_rfm ):
     """ Returns a json representation of the sensor data
 
     :param the_rfm: Raspberry RFM Module connection
-    :returns: json string, if valid message, None otherwise
+    :returns: json object, if valid message, None otherwise
     """
 
     data = rfm.ReceivePacket(7)
     sensor_obj = lacross.Create(data)
     if sensor_obj:
-        return sensor_obj.GetData()
+        return json.dumps(sensor_obj.GetData())
     else:
         return None
 
 
 while True:
-    obj = get_json_from_sensor(rfm)
-    if obj is None:
+    sensor_obj = get_json_from_sensor(rfm)
+    if sensor_obj is None:
         print("No valid message received")
         continue
 
-    messageJson = json.dumps(obj)
-    myAWSIoTMQTTClient.publish(topic, messageJson, 1)
-    print('Published topic %s: %s\n' % (topic, messageJson))
+    myAWSIoTMQTTClient.publish(topic, sensor_obj, 1)
+    print('Published topic %s: %s\n' % (topic, json.dumps(sensor_obj)))
 
 myAWSIoTMQTTClient.disconnect()
