@@ -31,8 +31,3 @@ Create a policy for the Raspberry, e.g. RaspberryPolicy
 }
 ```
 
-Import your RaspberryPi:
-
-```
-terraform import aws_iot_thing.raspi Raspberry
-```
