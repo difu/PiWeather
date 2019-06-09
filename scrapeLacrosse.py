@@ -7,6 +7,11 @@ from RaspyRFM.rfm69 import FSK
 from RaspyRFM.rfm69 import Rfm69
 from RaspyRFM.sensors import lacross
 
+import persistqueue
+
+import argparse
+
+import logging
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -15,9 +20,10 @@ host = config['DEFAULT']['host']
 topic = config['DEFAULT']['topic']
 clientId = config['DEFAULT']['client']
 certPath = config['DEFAULT']['certpath']
+sensor_queue_path = config['DEFAULT']['sensorqueue']
 
 
-def get_json_from_sensor( the_rfm ):
+def get_json_from_sensor(the_rfm):
     """ Returns a json representation of the sensor data
 
     :param the_rfm: Raspberry RFM Module connection
@@ -33,6 +39,16 @@ def get_json_from_sensor( the_rfm ):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', action='store_true', default=False,
+                        dest='enable_debug',
+                        help='Enable debug output')
+
+    parsed_args = parser.parse_args()
+
+    if parsed_args.enable_debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     # Init AWSIoTMQTTClient
     myAWSIoTMQTTClient = None
     myAWSIoTMQTTClient = AWSIoTMQTTClient(clientId)
@@ -68,6 +84,9 @@ def main():
         Bandwidth=200,  # kHz bandwidth
         RssiThresh=-100  # -100 dB RSSI threshold
     )
+
+    sensor_queue = persistqueue.SQLiteAckQueue(sensor_queue_path)
+
     while True:
         try:
             sensor_obj = get_json_from_sensor(rfm)
@@ -75,12 +94,16 @@ def main():
                 continue
 
             for key in {'T', 'RH'}:
-                sensor_message = {'Sensor': "Sensor/lacrosse/" + key, 'Timestamp': sensor_obj["timestamp"],
-                                  'value': sensor_obj[key]}
+                if key in sensor_obj:
+                    sensor_message = {'Sensor': "Sensor/lacrosse/" + sensor_obj["ID"] + "/" + key,
+                                      'Timestamp': sensor_obj["timestamp"], 'value': sensor_obj[key]}
 
-                myAWSIoTMQTTClient.publish(topic, json.dumps(sensor_message), 1)
-                print('Published topic %s: %s\n' % (topic, json.dumps(sensor_message)))
-                #print('Published topic %s: %s\n' % (topic, json.dumps(sensor_obj)))
+                    sensor_queue.put(sensor_message)
+                    logging.debug('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
+                    # print('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
+                    # myAWSIoTMQTTClient.publish(topic, json.dumps(sensor_message), 1)
+                    # print('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
+                    # print('Sensor Obj %s: %s\n' % (topic, json.dumps(sensor_obj)))
         except KeyboardInterrupt:
             break
 
