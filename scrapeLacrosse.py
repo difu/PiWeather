@@ -1,5 +1,9 @@
-import json
+import argparse
 import configparser
+import json
+import logging
+import persistqueue
+import time
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
@@ -7,11 +11,6 @@ from RaspyRFM.rfm69 import FSK
 from RaspyRFM.rfm69 import Rfm69
 from RaspyRFM.sensors import lacross
 
-import persistqueue
-
-import argparse
-
-import logging
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -21,6 +20,7 @@ topic = config['DEFAULT']['topic']
 clientId = config['DEFAULT']['client']
 certPath = config['DEFAULT']['certpath']
 sensor_queue_path = config['DEFAULT']['sensorqueue']
+scrape_interval_sec = int(config['DEFAULT']['scrapeintervalsec'])
 
 
 def get_json_from_sensor(the_rfm):
@@ -39,16 +39,6 @@ def get_json_from_sensor(the_rfm):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', action='store_true', default=False,
-                        dest='enable_debug',
-                        help='Enable debug output')
-
-    parsed_args = parser.parse_args()
-
-    if parsed_args.enable_debug:
-        logging.basicConfig(level=logging.DEBUG)
-
     # Init AWSIoTMQTTClient
     myAWSIoTMQTTClient = None
     myAWSIoTMQTTClient = AWSIoTMQTTClient(clientId)
@@ -104,6 +94,8 @@ def main():
                     # myAWSIoTMQTTClient.publish(topic, json.dumps(sensor_message), 1)
                     # print('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
                     # print('Sensor Obj %s: %s\n' % (topic, json.dumps(sensor_obj)))
+
+            time.sleep(scrape_interval_sec)
         except KeyboardInterrupt:
             break
 
@@ -112,4 +104,14 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', action='store_true', default=False,
+                        dest='enable_debug',
+                        help='Enable debug output')
+
+    parsed_args = parser.parse_args()
+
+    if parsed_args.enable_debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     main()

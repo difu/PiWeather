@@ -4,3 +4,4 @@ client = myRaspy
 host = xxxxxxxx.iot.eu-central-1.amazonaws.com
 certpath = /home/pi/awsIOTCerts/
 sensorqueue = /path/to/sensorqueue
+scrapeintervalsec = 10
