@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import dateutil.parser as dparser
 import json
 import logging
 import persistqueue
@@ -20,6 +21,8 @@ certPath = config['DEFAULT']['certpath']
 sensor_queue_path = config['DEFAULT']['sensorqueue']
 scrape_interval_sec = int(config['DEFAULT']['scrapeintervalsec'])
 
+last_published_sensor_timestamps = {}
+
 
 def get_json_from_sensor(the_rfm):
     """ Returns a json representation of the sensor data
@@ -34,6 +37,28 @@ def get_json_from_sensor(the_rfm):
         return sensor_obj.GetData()
     else:
         return None
+
+
+def check_publish(sensor_id, timestamp):
+    """ Returns True, if sensor data is old enough to be publish, False otherwise
+
+    :param sensor_id: the id of the sensor
+    :param timestamp: the timestamp of the measured value
+    :return: True, if timestamp is older than last timestamp plus scrape interval
+    """
+    parsed_t = dparser.parse(timestamp)
+    t_in_seconds = int(parsed_t.strftime('%s'))
+    logging.debug('measured ts %s, actual ts %s ' % (str(t_in_seconds), str(time.time())))
+    if sensor_id in last_published_sensor_timestamps:
+        last_published_ts = int(last_published_sensor_timestamps[sensor_id])
+        if last_published_ts < t_in_seconds-scrape_interval_sec:
+            logging.debug('measured ts %s, last_published_ts %s ' % (str(t_in_seconds), str(last_published_ts)))
+            last_published_sensor_timestamps[sensor_id] = t_in_seconds
+            return True
+    else:
+        last_published_sensor_timestamps[sensor_id] = t_in_seconds
+        return True
+    return False
 
 
 def main():
@@ -62,18 +87,23 @@ def main():
     while True:
         try:
             sensor_obj = get_json_from_sensor(rfm)
+            logging.debug('Raw sensor :%s ' % sensor_obj)
             if sensor_obj is None:
                 continue
 
             for key in {'T', 'RH'}:
                 if key in sensor_obj:
-                    sensor_message = {'Sensor': "Sensor/lacrosse/" + sensor_obj["ID"] + "/" + key,
-                                      'Timestamp': sensor_obj["timestamp"], 'value': sensor_obj[key]}
+                    sensor_id = "Sensor/lacrosse/" + sensor_obj["ID"] + "/" + key
+                    if check_publish(sensor_id, sensor_obj["timestamp"]):
 
-                    sensor_queue.put(sensor_message)
-                    logging.debug('Wrote message to queue with topic %s: %s\n' % (topic, json.dumps(sensor_message)))
+                        sensor_message = {'Sensor': sensor_id,
+                                          'Timestamp': sensor_obj["timestamp"], 'value': sensor_obj[key]}
 
-            time.sleep(scrape_interval_sec)
+                        sensor_queue.put(sensor_message)
+                        logging.debug('Wrote message to queue with topic %s: %s\n' % (topic, json.dumps(sensor_message)))
+                    else:
+                        logging.debug('Actual message too new. Skipping')
+
         except KeyboardInterrupt:
             break
 
