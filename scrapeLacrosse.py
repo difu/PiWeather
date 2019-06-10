@@ -5,8 +5,6 @@ import logging
 import persistqueue
 import time
 
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-
 from RaspyRFM.rfm69 import FSK
 from RaspyRFM.rfm69 import Rfm69
 from RaspyRFM.sensors import lacross
@@ -39,22 +37,6 @@ def get_json_from_sensor(the_rfm):
 
 
 def main():
-    # Init AWSIoTMQTTClient
-    myAWSIoTMQTTClient = None
-    myAWSIoTMQTTClient = AWSIoTMQTTClient(clientId)
-    myAWSIoTMQTTClient.configureEndpoint(host, 8883)
-    myAWSIoTMQTTClient.configureCredentials("{}AmazonRootCA1.pem".format(certPath),
-                                            "{}private.pem.key".format(certPath),
-                                            "{}certificate.pem.crt".format(certPath))
-
-    # AWSIoTMQTTClient connection configuration
-    myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
-    myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-    myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
-    myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
-    myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
-    myAWSIoTMQTTClient.connect()
-
     # Publish to the same topic in a loop forever
 
     if Rfm69.Test(1):
@@ -89,18 +71,13 @@ def main():
                                       'Timestamp': sensor_obj["timestamp"], 'value': sensor_obj[key]}
 
                     sensor_queue.put(sensor_message)
-                    logging.debug('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
-                    # print('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
-                    # myAWSIoTMQTTClient.publish(topic, json.dumps(sensor_message), 1)
-                    # print('Published message to topic %s: %s\n' % (topic, json.dumps(sensor_message)))
-                    # print('Sensor Obj %s: %s\n' % (topic, json.dumps(sensor_obj)))
+                    logging.debug('Wrote message to queue with topic %s: %s\n' % (topic, json.dumps(sensor_message)))
 
             time.sleep(scrape_interval_sec)
         except KeyboardInterrupt:
             break
 
-    print("Disconnecting...")
-    myAWSIoTMQTTClient.disconnect()
+    logging.debug('Finished')
 
 
 if __name__ == "__main__":
@@ -111,7 +88,10 @@ if __name__ == "__main__":
 
     parsed_args = parser.parse_args()
 
+    log_level=logging.INFO
     if parsed_args.enable_debug:
-        logging.basicConfig(level=logging.DEBUG)
+        log_level = logging.DEBUG
+
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=log_level)
 
     main()
