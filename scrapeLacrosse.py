@@ -20,6 +20,7 @@ clientId = config['DEFAULT']['client']
 certPath = config['DEFAULT']['certpath']
 sensor_queue_path = config['DEFAULT']['sensorqueue']
 scrape_interval_sec = int(config['DEFAULT']['scrapeintervalsec'])
+valid_sensor_ids = config['DEFAULT']['valid_sensor_ids']
 
 last_published_sensor_timestamps = {}
 
@@ -94,6 +95,12 @@ def main():
             for key in {'T', 'RH'}:
                 if key in sensor_obj:
                     sensor_id = "Sensor/lacrosse/" + sensor_obj["ID"] + "/" + key
+                    if sensor_obj["ID"] in valid_sensor_ids.split(','):
+                        pass
+                    else:
+                        logging.error('Wrong sensor id %s ' % (str(sensor_id)))
+                        continue
+
                     if check_publish(sensor_id, sensor_obj["timestamp"]):
 
                         sensor_message = {'Sensor': sensor_id,
