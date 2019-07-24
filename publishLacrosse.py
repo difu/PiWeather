@@ -3,6 +3,7 @@ import configparser
 import json
 import logging
 import persistqueue
+import time
 
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
@@ -16,9 +17,12 @@ topic = config['DEFAULT']['topic']
 clientId = config['DEFAULT']['client']
 certPath = config['DEFAULT']['certpath']
 sensor_queue_path = config['DEFAULT']['sensorqueue']
+max_errors_exit = int(config['DEFAULT']['max_errors_exit'])
 
 
 def main():
+    num_of_errors = 0
+
     # Init AWSIoTMQTTClient
     myAWSIoTMQTTClient = None
     myAWSIoTMQTTClient = AWSIoTMQTTClient(clientId)
@@ -41,19 +45,25 @@ def main():
     while True:
         try:
             logging.debug('Try to get next item')
+            if num_of_errors > max_errors_exit:
+                break
+            if num_of_errors > 0:
+                time.sleep(num_of_errors)
             item = sensor_queue.get()
             if myAWSIoTMQTTClient.publish(topic, json.dumps(item), 1):
                 logging.debug('Published message to topic %s: %s\n' % (topic, json.dumps(item)))
                 sensor_queue.ack(item)
+                num_of_errors = 0
             else:
                 logging.error('Failed to published message to topic %s: %s\n' % (topic, json.dumps(item)))
                 sensor_queue.nack(item)
+                num_of_errors += 1
 
         except KeyboardInterrupt:
             break
 
         except Exception:
-            sensor_queue.nack(item)
+            num_of_errors += 1
 
     print("Disconnecting...")
     myAWSIoTMQTTClient.disconnect()

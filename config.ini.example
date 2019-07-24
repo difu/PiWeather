@@ -6,3 +6,4 @@ certpath = /home/pi/awsIOTCerts/
 sensorqueue = /path/to/sensorqueue
 scrapeintervalsec = 10
 valid_sensor_ids = 44,c0
+max_errors_exit = 10
