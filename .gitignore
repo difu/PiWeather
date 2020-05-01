@@ -104,3 +104,6 @@ venv.bak/
 .mypy_cache/
 .idea
 /config.ini
+/AWS/terraform/*.zip
+/AWS/terraform/terraform*.backup
+/tmp/*

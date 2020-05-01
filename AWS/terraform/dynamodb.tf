@@ -1,8 +1,8 @@
 resource "aws_dynamodb_table" "weather_data_table" {
   name           = "WeatherData"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 1
-  write_capacity = 20
+  read_capacity  = 15
+  write_capacity = 1
   hash_key       = "Sensor"
   range_key      = "Timestamp"
 
@@ -17,6 +17,6 @@ resource "aws_dynamodb_table" "weather_data_table" {
   }
 
   tags = {
-    Project        = "${var.project}"
+    Project        = var.project
   }
 }
