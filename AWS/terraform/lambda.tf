@@ -6,6 +6,14 @@ resource "aws_lambda_layer_version" "jinja2_layer" {
   compatible_runtimes = ["python3.6"]
 }
 
+resource "aws_lambda_layer_version" "matplotlib_layer" {
+  s3_bucket = aws_s3_bucket.internal_piweather_bucket.bucket
+  s3_key    = "lambda/lambda_matplotlib_layer.zip"
+  layer_name = "matplotlib-layer"
+
+  compatible_runtimes = ["python3.6"]
+}
+
 resource "aws_cloudwatch_event_target" "check_foo_every_five_minutes" {
     rule = aws_cloudwatch_event_rule.actual_weather_page_generation.name
     target_id = "check_foo"
