@@ -4,7 +4,7 @@ resource "aws_cloudwatch_event_rule" "actual_chart_generation" {
   schedule_expression = "rate(5 minutes)"
 
   tags = {
-    Project = "${var.project}"
+    Project = var.project
   }
 }
 
@@ -14,6 +14,6 @@ resource "aws_cloudwatch_event_rule" "actual_weather_page_generation" {
   schedule_expression = "rate(10 minutes)"
 
   tags = {
-    Project = "${var.project}"
+    Project = var.project
   }
 }

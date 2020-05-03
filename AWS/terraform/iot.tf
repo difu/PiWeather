@@ -11,8 +11,8 @@ resource "aws_iot_topic_rule" "lacrosse_rule" {
     hash_key_value = "$${Sensor}"
     range_key_field = "Timestamp"
     range_key_value = "$${Timestamp}"
-    role_arn = "${aws_iam_role.iot.arn}"
-    table_name = "${aws_dynamodb_table.weather_data_table.name}"
+    role_arn = aws_iam_role.iot.arn
+    table_name = aws_dynamodb_table.weather_data_table.name
   }
 }
 
@@ -37,7 +37,7 @@ EOF
 
 resource "aws_iam_role_policy" "iot_allow_dynamo_policy" {
   name = "${var.project}-iot-dynamo-policy"
-  role = "${aws_iam_role.iot.id}"
+  role = aws_iam_role.iot.id
 
   policy = <<EOF
 {
