@@ -58,4 +58,4 @@ def generate_daily_stats(start_date, days, force=False):
 
 if __name__ == "__main__":
     # lambda_handler('','')
-    generate_daily_stats('2020-05-30T', 1)
+    generate_daily_stats('2020-05-31T', 1)
