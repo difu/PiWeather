@@ -16,9 +16,8 @@ resource "aws_lambda_layer_version" "matplotlib_layer" {
 
 # Begin render_actual_values_page
 
-resource "aws_cloudwatch_event_target" "check_foo_every_five_minutes" {
+resource "aws_cloudwatch_event_target" "render_actual_values_page" {
     rule = aws_cloudwatch_event_rule.actual_weather_page_generation.name
-    target_id = "check_foo"
     arn = aws_lambda_function.render_actual_values_page.arn
 }
 
@@ -142,6 +141,18 @@ resource "aws_iam_policy" "render_actual_values_page_policy" {
 
 # END render_actual_values_page
 
+resource "aws_cloudwatch_event_target" "render_24h_values_page" {
+    rule = aws_cloudwatch_event_rule.actual_24h_chart_generation.name
+    arn = aws_lambda_function.generate_chart_24h.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_render_24h_values_page" {
+    statement_id = "AllowExecutionFromCloudWatch"
+    action = "lambda:InvokeFunction"
+    function_name = aws_lambda_function.generate_chart_24h.function_name
+    principal = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.actual_24h_chart_generation.arn
+}
 
 resource "aws_lambda_function" "generate_chart_24h" {
   filename = data.archive_file.generate_chart_24h_zip.output_path

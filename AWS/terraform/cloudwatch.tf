@@ -1,7 +1,7 @@
-resource "aws_cloudwatch_event_rule" "actual_chart_generation" {
+resource "aws_cloudwatch_event_rule" "actual_24h_chart_generation" {
   name                = "actual_chart_generation"
-  description         = "Triggers actual charts. Fires every five minutes"
-  schedule_expression = "rate(5 minutes)"
+  description         = "Triggers actual 24h charts. Fires every 15 minutes"
+  schedule_expression = "rate(15 minutes)"
 
   tags = {
     Project = var.project
