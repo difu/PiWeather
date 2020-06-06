@@ -43,12 +43,12 @@ Create a policy for the Raspberry, e.g. RaspberryPolicy
 
 Following log entries are supported:
 
-For station events
+#### Station events
 ```
 Log/System
 ```
 
-for example
+example:
 ```json
 {
   "payload": "Switched Raspberry to UTC",
@@ -57,12 +57,12 @@ for example
 }
 ```
 
-For system events
+#### System events
 ```
 Log/System
 ```
 
-For weather events
+#### Weather events
 ```
 Log/Weather
 ```
