@@ -107,3 +107,4 @@ venv.bak/
 /AWS/terraform/*.zip
 /AWS/terraform/terraform*.backup
 /tmp/*
+/AWS/terraform/.terraform/

@@ -37,3 +37,32 @@ Create a policy for the Raspberry, e.g. RaspberryPolicy
 }
 ```
 
+### DynamoDB
+
+#### Logs
+
+Following log entries are supported:
+
+For station events
+```
+Log/System
+```
+
+for example
+```json
+{
+  "payload": "Switched Raspberry to UTC",
+  "Sensor": "Log/System",
+  "Timestamp": "2020-04-25T20:37:53"
+}
+```
+
+For system events
+```
+Log/System
+```
+
+For weather events
+```
+Log/Weather
+```
