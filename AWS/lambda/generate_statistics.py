@@ -28,7 +28,14 @@ def generate_daily_stats(sensor, start_date, days, force=False):
     for i in range(days):
         the_date = datetime.datetime.strptime(start_date, date_format) + datetime.timedelta(days=i)
         date_only = the_date.strftime("%Y-%m-%dT")
-        print(date_only)
+        sensor_stats = sensor + "/daily_stats"
+
+        response = table.query(
+            KeyConditionExpression=Key('Sensor').eq(sensor_stats) & Key('Timestamp').eq(date_only)
+        )
+
+        if force is False and len(response["Items"]) > 0:
+            return
 
         response = table.query(
             KeyConditionExpression=Key('Sensor').eq(sensor) & Key('Timestamp').begins_with(date_only)
@@ -47,32 +54,31 @@ def generate_daily_stats(sensor, start_date, days, force=False):
                 min_ts = item['Timestamp']
             count = count + 1
 
-        print("Count:")
-        print(count)
-        print("Max")
         max_value = max(values)
-        print(max_value)
-        print(max_ts)
 
-        print("Min")
         min_value = min(values)
-        print(min_value)
-        print(min_ts)
-
-        print("median")
         median_value = statistics.median(values)
-        print(median_value)
-        print("mean")
         mean_value = statistics.mean(values)
-        print(mean_value)
 
-        # response = table.update_item(
-        #
-        #     ReturnValues="UPDATED_NEW"
-        # )
+        response = table.put_item(
+
+            Item={
+                'Sensor': sensor_stats,
+                'Timestamp': date_only,
+                'payload': {
+                    'max': max_value,
+                    'max_ts': max_ts,
+                    'min': min_value,
+                    'min_ts': min_ts,
+                    'mean': mean_value,
+                    'median': median_value
+                }
+            },
+            ReturnValues="ALL_OLD"
+        )
         # print(response)
 
 
 if __name__ == "__main__":
     # lambda_handler('','')
-    generate_daily_stats('Sensor/lacrosse/44/T', '2020-05-31T', 1)
+    generate_daily_stats('Sensor/lacrosse/44/RH', '2020-05-31T', 1, False)
