@@ -12,3 +12,8 @@ variable "lacrosse_topic" {
   description = "The name of the lacrosse topic where messages from lacrosse sensors are put in"
   default     = "/lacrosse"
 }
+
+variable "davis_topic" {
+  description = "The name of the davis topic where messages from davis sensors are put in"
+  default     = "/davis"
+}
