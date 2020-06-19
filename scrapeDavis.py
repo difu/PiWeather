@@ -71,7 +71,7 @@ def get_sensor_json_items(davis_json, sensor_id, metrics):
                 value = conditions[davis_metric]
                 if unit == "C":
                     # (75 °F − 32) × 5/9 = 24,333 °C
-                    value = (value-32) * (5/9)
+                    value = round((value-32) * (5/9), 1)
                 logging.debug("Sensordata: ID: " + str(sensor_id) + ", Metric:" + metric + ", Value:" + str(value))
                 the_item = {"Sensor": "Sensor/Davis/"+str(sensor_id)+"/" + metric,
                             "Timestamp": datetime.datetime.now().replace(microsecond=0).isoformat(),
