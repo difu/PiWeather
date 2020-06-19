@@ -54,7 +54,7 @@ EOF
 }
 
 resource "aws_iam_role" "iot_davis_role" {
-  name = "${var.project}-DavisyesToDynamo-iot-role"
+  name = "${var.project}-DavisToDynamo-iot-role"
 
   assume_role_policy = <<EOF
 {
